@@ -28,7 +28,7 @@ public class DataServlet extends MainServlet
 			HttpServletResponse response ) throws ServletException, IOException
 	{
 
-		response.setContentType( "text/plain" );
+		response.setContentType( "JSON" );
 		String param = request.getParameter( "myparam" );
 		response.getWriter().write( "Hello from Data Base" );
 		//creating JSON object

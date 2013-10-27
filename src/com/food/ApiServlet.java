@@ -29,7 +29,7 @@ public class ApiServlet extends MainServlet
 			HttpServletResponse response ) throws ServletException, IOException
 	{
 
-		response.setContentType( "text/plain" );
+		response.setContentType( "JSON" );
 
 		String username = request.getParameter( "username" );
 		username = username.trim();

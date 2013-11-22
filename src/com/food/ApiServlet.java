@@ -11,7 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ApiServlet extends MainServlet
+public class ApiServlet extends Servlet
 {
 /**
  *   Accessible from admin app to form the ListView.

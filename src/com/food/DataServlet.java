@@ -88,6 +88,7 @@ public class DataServlet extends Servlet
         response.getWriter().write( clientArray.toString() );
 
         // Add the new order to the orderqueue database
+        // TODO: add recieved order to database, and remove test:
         addOrderToQueueDatabase( "Jimmy", "BIG BURRITO", "$6.90",
                 false,
                 DATE_FORMAT.format( Calendar.getInstance().getTime() ) );
@@ -104,10 +105,11 @@ public class DataServlet extends Servlet
         Class.forName( "org.sqlite.JDBC" );
         orderQueueConnection_ =
                 DriverManager.getConnection( "jdbc:sqlite:orderQueue.db" );
-        System.out.println( "Openeddatabase" );
+        System.out.println( "Opened orderqueue database" );
 
-        // TODO: the following if is a hack, figure out how to check to check
-        // and see if the database is already made
+        // TODO: the following if is a hack, figure out how to
+        // http://stackoverflow.com/questions/3386667/query-if-android-database-exists
+        // Check to see if the database is already made
         if ( null == orderQueueConnection_ )
         {
             // Create the database table and add the students
@@ -135,7 +137,38 @@ public class DataServlet extends Servlet
                 " Time_Ready    TEXT)";
         stmt.executeUpdate( sql );
         stmt.close();
-        System.out.println( "Createdtable" );
+        System.out.println( "Created orderqueue table" );
+    }
+
+    /**
+     * Creates the admin tracker database file and calls the function to create
+     * it's table
+     */
+    private void createAdminTrackerDatabase( Connection c )
+    {
+        Class.forName( "org.sqlite.JDBC" );
+        orderQueueConnection_ =
+                DriverManager.getConnection( "jdbc:sqlite:adminTracker.db" );
+        System.out.println( "Opened admin tracker database" );
+        
+        // TODO: Check to see if a database has already been created.
+    }
+
+    /**
+     * Creates the columns for that admin tracker database
+     */
+    private void createAdminTrackerTracker( Connection c )
+    {
+        // TODO:
+    }
+
+    /**
+     * Once an order has been paid for and picked up this function is called to
+     * add it to the admin tracker database
+     */
+    private void addOrderToAdminTracker( Connetion c )
+    {
+        // TODO:
     }
 
     /**

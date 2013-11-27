@@ -46,7 +46,7 @@ public class DataServlet extends HttpServlet
     private static Connection orderQueueConnection_;
 
     // TODO: Implement, also in main
-    private static int orderIdNumber_ = 0;
+    private static Integer orderIdNumber_ = 0;
 
     /**
      * Adds new orders to the server from the client app.
@@ -82,9 +82,9 @@ public class DataServlet extends HttpServlet
             System.err.print( "Error in the data servlet: " + e );
         }
 
-        Integer randomNumber =
+        orderIdNumber_ =
                 1000 + (int) (Math.random() * ((9999 - 1000) + 1));
-        response.getWriter().write( randomNumber.toString() );
+        response.getWriter().write( orderIdNumber_.toString() );
 
         // TODO: we need to get paid boolean and order total from client
         // Add received order to database, and remove test:
@@ -94,6 +94,7 @@ public class DataServlet extends HttpServlet
             Class.forName( "org.sqlite.JDBC" );
             orderQueueConnection_ =
                     DriverManager.getConnection( "jdbc:sqlite:orderqueue.db" );
+          //  createOrderQueueDatabase();
 
             addOrderToQueueDatabase( username, order, "$6.90", false, location );
 
@@ -113,6 +114,31 @@ public class DataServlet extends HttpServlet
         }
     }
 
+    
+    /**
+     * This function creates an sql table using JDBC
+     * 
+     * @param c
+     * @throws SQLException
+     */
+    public static void createOrderQueueTable( Connection c )
+            throws SQLException
+    {
+        Statement stmt = c.createStatement();
+        String sql = "CREATE TABLE IF NOT EXISTS class " +
+                "(id INT PRIMARY KEY        NOT NULL, " +
+                " Name           TEXT       NOT NULL, " +
+                " Contents_Of_Order         TEXT       NOT NULL, " +
+                " Cost          TEXT        NOT NULL, " +
+                " Paid         BOOLEAN     NOT NULL, " +
+                " Time_Of_Order          TEXT       NOT NULL, " +
+                " Time_Ready    TEXT)";
+        stmt.executeUpdate( sql );
+        stmt.close();
+        System.out.println( "Created orderqueue table" );
+    }
+
+
     /**
      * Once an order has been paid for and picked up this function is called to
      * add it to the admin tracker database
@@ -129,11 +155,17 @@ public class DataServlet extends HttpServlet
             String orderCost, Boolean paid,
             String timeOfOrderPlaced ) throws SQLException
     {
-        Statement stmt = orderQueueConnection_.createStatement();
-        String sql = 
-                "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order "
-                        + "VALUES ("
-                        + Integer.toString( orderIdNumber_ )
+       
+    	//PreparedStatement stmt = connection.prepareStatement("insert into test (firstname, lastname) values (?, ?");
+    	//stmt.setString(1, name);
+    	//stmt.setString(2, lname);
+    	//stmt.executeUpdate();
+    	 String sql = 
+                 "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order "
+                         + "VALUES (?,?,?,?,?)";
+    	PreparedStatement stmt = orderQueueConnection_.prepareStatement( sql );
+       
+                       /* + Integer.toString( orderIdNumber_ )
                         + ", '"
                         + name 
                         + "', '"
@@ -144,8 +176,15 @@ public class DataServlet extends HttpServlet
                         + paid.toString()
                         + "', '"
                         + timeOfOrderPlaced
-                        + "');";
-        stmt.executeUpdate( sql );
+                        + "');";*/
+        
+    	stmt.setString( 1, Integer.toString( orderIdNumber_ ));
+    	stmt.setString( 2, name);
+    	stmt.setString( 3, orderSummary);
+    	stmt.setString( 4, orderCost);
+    	stmt.setString( 5, paid.toString());
+    	stmt.setString( 6, timeOfOrderPlaced);
+    	stmt.executeUpdate();
         stmt.close();
     }
 
@@ -163,23 +202,17 @@ public class DataServlet extends HttpServlet
             String orderSummary, String orderCost, Boolean paid,
             String timeOfOrderPlaced ) throws SQLException
     {
-        Statement stmt = orderQueueConnection_.createStatement();
-        String sql =
-                "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order "
-                        + "VALUES ("
-                        + Integer.toString( orderIdNumber_ )
-                        + ", '"
-                        + name
-                        + "', '"
-                        + orderSummary
-                        + "', '"
-                        + orderCost
-                        + "', '"
-                        + paid.toString()
-                        + "', '"
-                        + timeOfOrderPlaced
-                        + "');";
-        stmt.executeUpdate( sql );
+    	 String sql = 
+                 "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order) "
+                         + "VALUES (?,?,?,?,?,?)";
+    	PreparedStatement stmt = orderQueueConnection_.prepareStatement( sql );        
+    	stmt.setString( 1, Integer.toString( orderIdNumber_ ));
+    	stmt.setString( 2, name);
+    	stmt.setString( 3, orderSummary);
+    	stmt.setString( 4, orderCost);
+    	stmt.setString( 5, paid.toString());
+    	stmt.setString( 6, timeOfOrderPlaced);
+    	stmt.executeUpdate();
         stmt.close();
     }
 

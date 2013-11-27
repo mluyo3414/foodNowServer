@@ -56,9 +56,8 @@ public class MainServlet extends HttpServlet
 
         // Create the databases
         try
-        {
-            createOrderQueueDatabase();
-            createAdminTrackerDatabase();
+        {        createOrderQueueDatabase();
+//        		createAdminTrackerDatabase();
         }
         catch ( Exception ex )
         {
@@ -94,7 +93,7 @@ public class MainServlet extends HttpServlet
 
         Connection orderQueueConnection =
                 DriverManager.getConnection( "jdbc:sqlite:orderqueue.db" );
-        System.out.println( "Opened orderqueue database" );
+        System.out.println( "Created orderqueue database" );
 
         // TODO: the following if is a hack, figure out how to
         // http://stackoverflow.com/questions/3386667/query-if-android-database-exists
@@ -139,13 +138,13 @@ public class MainServlet extends HttpServlet
     {
         Class.forName( "org.sqlite.JDBC" );
 
-        Connection orderQueueConnection =
-                DriverManager.getConnection( "jdbc:sqlite:adminTracker.db" );
+        Connection adminTrackerConnection =
+                DriverManager.getConnection( "jdbc:sqlite:admintracker.db" );
         System.out.println( "Opened admin tracker database" );
-
         // TODO: Check to see if a database has already been created.
-        createAdminTrackerTable( orderQueueConnection );
+        createAdminTrackerTable( adminTrackerConnection );
     }
+
 
     /**
      * Creates the columns for that Admin tracker database

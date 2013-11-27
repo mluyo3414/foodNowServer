@@ -93,7 +93,7 @@ public class MainServlet extends HttpServlet
         Class.forName( "org.sqlite.JDBC" );
 
         Connection orderQueueConnection =
-                DriverManager.getConnection( "jdbc:sqlite:orderQueue.db" );
+                DriverManager.getConnection( "jdbc:sqlite:orderqueue.db" );
         System.out.println( "Opened orderqueue database" );
 
         // TODO: the following if is a hack, figure out how to

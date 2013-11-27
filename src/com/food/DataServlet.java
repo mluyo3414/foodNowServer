@@ -65,17 +65,20 @@ public class DataServlet extends HttpServlet
         order = order.trim();
         // TODO: location is really time
         String location = request.getParameter( "location" );
+        String total  =request.getParameter( "total" );
 
         // passing elements
         String JSONusername = "NAME";
         String JSONorder = "ORDER";
         String JSONLocation = "LOCATION";
+        String JSONTotal = "TOTAL";
         JSONObject newClient = new JSONObject();
         try
         {
             newClient.put( JSONusername, username );
             newClient.put( JSONorder, order );
             newClient.put( JSONLocation, location );
+            newClient.put(JSONTotal,total);
         }
         catch ( JSONException e )
         {
@@ -85,6 +88,7 @@ public class DataServlet extends HttpServlet
         orderIdNumber_ =
                 1000 + (int) (Math.random() * ((9999 - 1000) + 1));
         response.getWriter().write( orderIdNumber_.toString() );
+		MainServlet.clientArray.put( newClient );
 
         // TODO: we need to get paid boolean and order total from client
         // Add received order to database, and remove test:
@@ -96,7 +100,7 @@ public class DataServlet extends HttpServlet
                     DriverManager.getConnection( "jdbc:sqlite:orderqueue.db" );
           //  createOrderQueueDatabase();
 
-            addOrderToQueueDatabase( username, order, "$6.90", false, location );
+            addOrderToQueueDatabase( username, order, total, false, location );
 
             // TODO: add received order to database, and remove test:
             // addOrderToQueueDatabase( "Jimmy", "BIG BURRITO", "$6.90",

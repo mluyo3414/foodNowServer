@@ -7,6 +7,18 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * @author Jimmy Dagres
+ * 
+ * @version Nov 27, 2013
+ * 
+ * TODO
+ *
+ */
 public class ApiServlet extends HttpServlet
 {
 /**
@@ -16,7 +28,7 @@ public class ApiServlet extends HttpServlet
 			HttpServletResponse response ) throws IOException
 	{
 		response.setContentType( "text/plain" );
-		response.getWriter().write( clientArray.toString() );
+		response.getWriter().write( MainServlet.clientArray.toString() );
 	}
 	/**
 	 *  accessible for the admin app. Deletes orders when receives post with information.
@@ -49,7 +61,7 @@ public class ApiServlet extends HttpServlet
 		}
 		String JOBJtoString = newClient.toString();
 
-		String ClientArrayRaw = clientArray.toString();
+		String ClientArrayRaw = MainServlet.clientArray.toString();
 
 		String newClientArray = ClientArrayRaw.replace( JOBJtoString, "" );
 		// if object is first
@@ -71,12 +83,7 @@ public class ApiServlet extends HttpServlet
 		}
 		
 		//replacing old array
-		clientArray=newArray;
-		
-		
-		
-		
-		
+		MainServlet.clientArray=newArray;
 
 	}
 }

@@ -44,7 +44,8 @@ public class MainServlet extends HttpServlet
     public static void main( String[] args ) throws Exception
     {
         // port number of the server
-        Server server = new Server( 8080 );
+        Server server = new Server( 7080 );
+        
         // creating JSON array
         clientArray = new JSONArray();
         WebAppContext context = new WebAppContext();
@@ -52,8 +53,6 @@ public class MainServlet extends HttpServlet
         context.setContextPath( "/" );
         // starting new server
         server.setHandler( context );
-        server.start();
-        server.join();
 
         // Create the databases
         try
@@ -65,6 +64,9 @@ public class MainServlet extends HttpServlet
         {
             System.err.print( "Error creating databases: " + ex );
         }
+
+        server.start();
+        server.join();
     }
 
     /**
@@ -144,12 +146,14 @@ public class MainServlet extends HttpServlet
         // TODO: Check to see if a database has already been created.
         createAdminTrackerTable( orderQueueConnection );
     }
-    
+
     /**
      * Creates the columns for that Admin tracker database
-     * @throws SQLException 
+     * 
+     * @throws SQLException
      */
-    private static void createAdminTrackerTable( Connection c ) throws SQLException
+    private static void createAdminTrackerTable( Connection c )
+            throws SQLException
     {
         // TODO
         Statement stmt = c.createStatement();
@@ -163,5 +167,6 @@ public class MainServlet extends HttpServlet
                 " Time_Ready    TEXT)";
         stmt.executeUpdate( sql );
         stmt.close();
-        System.out.println( "Created orderqueue table" );    }
+        System.out.println( "Created orderqueue table" );
+    }
 }

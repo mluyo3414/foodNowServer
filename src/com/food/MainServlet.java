@@ -44,7 +44,7 @@ public class MainServlet extends HttpServlet
     public static void main( String[] args ) throws Exception
     {
         // port number of the server
-        Server server = new Server( 7080 );
+        Server server = new Server( 8080 );
         
         // creating JSON array
         clientArray = new JSONArray();

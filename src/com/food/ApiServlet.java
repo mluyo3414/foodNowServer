@@ -7,11 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-public class ApiServlet extends Servlet
+public class ApiServlet extends HttpServlet
 {
 /**
  *   Accessible from admin app to form the ListView.

@@ -14,17 +14,14 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.LinkedList;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.JSONObject;
-import org.json.JSONArray;
-import org.json.JSONException;
 
-import edu.vt.ece4564.example.Student;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * 
@@ -37,7 +34,7 @@ import edu.vt.ece4564.example.Student;
  *         store the orders
  * 
  */
-public class DataServlet extends Servlet
+public class DataServlet extends HttpServlet
 {
     // TODO: implement a static ID for every order
 
@@ -46,11 +43,10 @@ public class DataServlet extends Servlet
     private final static DateFormat DATE_FORMAT = new SimpleDateFormat(
             "MM/dd/yyyy HH:mm:ss" );
 
-    public DataServlet()
-    {
+    private static Connection orderQueueConnection_;
 
-        createOrderQueueDatabase();
-    }
+    // TODO: Implement, also in main
+    private static int orderIdNumber_ = 0;
 
     /**
      * Adds new orders to the server from the client app.
@@ -59,15 +55,17 @@ public class DataServlet extends Servlet
             HttpServletResponse response ) throws ServletException,
             IOException
     {
-        response.setContentType( "JSON" );
-        String param = request.getParameter( "myparam" );
-        response.getWriter().write( "Hello from Data Base" );
+        response.setContentType( "text/plain" );
+        // response.getWriter().write( "Hello from Data Base" );
+
         // creating JSON object
         String username = request.getParameter( "username" );
         username = username.trim();
         String order = request.getParameter( "order" );
         order = order.trim();
+        // TODO: location is really time
         String location = request.getParameter( "location" );
+
         // passing elements
         String JSONusername = "NAME";
         String JSONorder = "ORDER";
@@ -84,89 +82,38 @@ public class DataServlet extends Servlet
             System.err.print( "Error in the data servlet: " + e );
         }
 
-        clientArray.put( newClient );
-        response.getWriter().write( clientArray.toString() );
+        MainServlet.clientArray.put( newClient );
+        response.getWriter().write( MainServlet.clientArray.toString() );
 
-        // Add the new order to the orderqueue database
-        // TODO: add recieved order to database, and remove test:
-        addOrderToQueueDatabase( "Jimmy", "BIG BURRITO", "$6.90",
-                false,
-                DATE_FORMAT.format( Calendar.getInstance().getTime() ) );
-
-        // Grab a hold of the student after modifying it
-        printOrderQueue( orderQueueConnection_ );
-    }
-
-    /**
-     * Initializes the order queue database
-     */
-    private createOrderQueueDatabase()
-    {
-        Class.forName( "org.sqlite.JDBC" );
-        orderQueueConnection_ =
-                DriverManager.getConnection( "jdbc:sqlite:orderQueue.db" );
-        System.out.println( "Opened orderqueue database" );
-
-        // TODO: the following if is a hack, figure out how to
-        // http://stackoverflow.com/questions/3386667/query-if-android-database-exists
-        // Check to see if the database is already made
-        if ( null == orderQueueConnection_ )
+        // TODO: we need to get paid boolean and order total from client
+        // Add received order to database, and remove test:
+        try
         {
-            // Create the database table and add the students
-            createOrderQueueTable( orderQueueConnection_ );
+            addOrderToQueueDatabase( username, order, "$6.90",
+                    false,
+                    location );
+
+            // TODO: add received order to database, and remove test:
+            // addOrderToQueueDatabase( "Jimmy", "BIG BURRITO", "$6.90",
+            // false,
+            // DATE_FORMAT.format( Calendar.getInstance().getTime() ) );
+
+            // Grab a hold of the order after modifying it
+            printOrderQueue( orderQueueConnection_ );
         }
-    }
-
-    /**
-     * This function creates an sql table using JDBC
-     * 
-     * @param c
-     * @throws SQLException
-     */
-    public static void createOrderQueueTable( Connection c )
-            throws SQLException
-    {
-        Statement stmt = c.createStatement();
-        String sql = "CREATE TABLE IF NOT EXISTS class " +
-                "(id INT PRIMARY KEY        NOT NULL, " +
-                " Name           TEXT       NOT NULL, " +
-                " Contents_Of_Order         TEXT       NOT NULL, " +
-                " Cost          TEXT        NOT NULL, " +
-                " Payed         BOOLEAN     NOT NULL, " +
-                " Time_Of_Order          TEXT       NOT NULL, " +
-                " Time_Ready    TEXT)";
-        stmt.executeUpdate( sql );
-        stmt.close();
-        System.out.println( "Created orderqueue table" );
-    }
-
-    /**
-     * Creates the admin tracker database file and calls the function to create
-     * it's table
-     */
-    private void createAdminTrackerDatabase( Connection c )
-    {
-        Class.forName( "org.sqlite.JDBC" );
-        orderQueueConnection_ =
-                DriverManager.getConnection( "jdbc:sqlite:adminTracker.db" );
-        System.out.println( "Opened admin tracker database" );
-        
-        // TODO: Check to see if a database has already been created.
-    }
-
-    /**
-     * Creates the columns for that admin tracker database
-     */
-    private void createAdminTrackerTracker( Connection c )
-    {
-        // TODO:
+        catch ( SQLException e )
+        {
+            System.err
+                    .print( "Error adding/printing new order to order queue database: "
+                            + e );
+        }
     }
 
     /**
      * Once an order has been paid for and picked up this function is called to
      * add it to the admin tracker database
      */
-    private void addOrderToAdminTracker( Connetion c )
+    private void addOrderToAdminTrackerDatabase( Connection c )
     {
         // TODO:
     }
@@ -188,7 +135,7 @@ public class DataServlet extends Servlet
     {
         Statement stmt = orderQueueConnection_.createStatement();
         String sql =
-                "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Payed,Time_Of_Order "
+                "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order "
                         + "VALUES ("
                         + Integer.toString( orderIdNumber_ )
                         + ", '"
@@ -223,14 +170,14 @@ public class DataServlet extends Servlet
             String order = rs.getString( "Contents_Of_Order" );
             String orderTime = rs.getString( "Time_Of_Order" );
             String cost = rs.getString( "Cost" );
-            Boolean payed = rs.getBoolean( "Payed" );
+            Boolean paid = rs.getBoolean( "Paid" );
             String timeCompleted = rs.getString( "Time_Ready" );
 
             // Display the information pulled
             System.out.println( "Got Name: " + name );
             System.out.println( "   Contents_Of_Order: " + order );
             System.out.println( "   Cost: " + cost );
-            System.out.println( "   Payed: " + payed );
+            System.out.println( "   Paid: " + paid );
             System.out.println( "   Time_Of_Order: " + orderTime );
             System.out.println( "   Time_Ready: " + timeCompleted );
             System.out.println( "   id: " + id );

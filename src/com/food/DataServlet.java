@@ -12,8 +12,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -36,7 +38,7 @@ import org.json.JSONObject;
  */
 public class DataServlet extends HttpServlet
 {
-    // TODO: implement a static ID for every order
+    private static final long serialVersionUID = 1L;
 
     // An instance of SimpleDateFormat used for formatting
     // the string representation of date (month/day/year)
@@ -44,6 +46,7 @@ public class DataServlet extends HttpServlet
             "MM/dd/yyyy HH:mm:ss" );
 
     private static Connection orderQueueConnection_;
+    private static Connection adminTrackerConnection_;
 
     // TODO: Implement, also in main
     private static Integer orderIdNumber_ = 0;
@@ -56,16 +59,15 @@ public class DataServlet extends HttpServlet
             IOException
     {
         response.setContentType( "text/plain" );
-        // response.getWriter().write( "Hello from Data Base" );
 
         // creating JSON object
         String username = request.getParameter( "username" );
         username = username.trim();
         String order = request.getParameter( "order" );
         order = order.trim();
-        // TODO: location is really time
-        String location = request.getParameter( "location" );
-        String total  =request.getParameter( "total" );
+        
+        String time = request.getParameter( "location" );
+        String total = request.getParameter( "total" );
 
         // passing elements
         String JSONusername = "NAME";
@@ -77,8 +79,8 @@ public class DataServlet extends HttpServlet
         {
             newClient.put( JSONusername, username );
             newClient.put( JSONorder, order );
-            newClient.put( JSONLocation, location );
-            newClient.put(JSONTotal,total);
+            newClient.put( JSONLocation, time );
+            newClient.put( JSONTotal, total );
         }
         catch ( JSONException e )
         {
@@ -88,27 +90,26 @@ public class DataServlet extends HttpServlet
         orderIdNumber_ =
                 1000 + (int) (Math.random() * ((9999 - 1000) + 1));
         response.getWriter().write( orderIdNumber_.toString() );
-		MainServlet.clientArray.put( newClient );
+        MainServlet.clientArray.put( newClient );
 
         // TODO: we need to get paid boolean and order total from client
-        // Add received order to database, and remove test:
+        // Add received order to database
         try
         {
 
             Class.forName( "org.sqlite.JDBC" );
             orderQueueConnection_ =
                     DriverManager.getConnection( "jdbc:sqlite:orderqueue.db" );
-          //  createOrderQueueDatabase();
+            adminTrackerConnection_ =
+                    DriverManager
+                            .getConnection( "jdbc:sqlite:admintracker.db" );
 
-            addOrderToQueueDatabase( username, order, total, false, location );
-
-            // TODO: add received order to database, and remove test:
-            // addOrderToQueueDatabase( "Jimmy", "BIG BURRITO", "$6.90",
-            // false,
-            // DATE_FORMAT.format( Calendar.getInstance().getTime() ) );
+            // TODO: change the hard coded phone# to come from the client app
+            addOrderToQueueDatabase( username, order, total, false, time,
+                    "757 636 3087" );
 
             // Grab a hold of the order after modifying it
-            // printOrderQueue( orderQueueConnection_ );
+            printOrderQueue( orderQueueConnection_ );
         }
         catch ( Exception e )
         {
@@ -116,80 +117,6 @@ public class DataServlet extends HttpServlet
                     .print( "Error adding/printing new order to order queue database: "
                             + e );
         }
-    }
-
-    
-    /**
-     * This function creates an sql table using JDBC
-     * 
-     * @param c
-     * @throws SQLException
-     */
-    public static void createOrderQueueTable( Connection c )
-            throws SQLException
-    {
-        Statement stmt = c.createStatement();
-        String sql = "CREATE TABLE IF NOT EXISTS class " +
-                "(id INT PRIMARY KEY        NOT NULL, " +
-                " Name           TEXT       NOT NULL, " +
-                " Contents_Of_Order         TEXT       NOT NULL, " +
-                " Cost          TEXT        NOT NULL, " +
-                " Paid         BOOLEAN     NOT NULL, " +
-                " Time_Of_Order          TEXT       NOT NULL, " +
-                " Time_Ready    TEXT)";
-        stmt.executeUpdate( sql );
-        stmt.close();
-        System.out.println( "Created orderqueue table" );
-    }
-
-
-    /**
-     * Once an order has been paid for and picked up this function is called to
-     * add it to the admin tracker database
-     * 
-     * @param name
-     * @param orderSummary
-     * @param orderCost
-     * @param paid
-     * @param timeOfOrderPlaced
-     * @throws SQLException
-     */
-    private static void addOrderToAdminTrackerDatabase( String name,
-            String orderSummary,
-            String orderCost, Boolean paid,
-            String timeOfOrderPlaced ) throws SQLException
-    {
-       
-    	//PreparedStatement stmt = connection.prepareStatement("insert into test (firstname, lastname) values (?, ?");
-    	//stmt.setString(1, name);
-    	//stmt.setString(2, lname);
-    	//stmt.executeUpdate();
-    	 String sql = 
-                 "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order "
-                         + "VALUES (?,?,?,?,?)";
-    	PreparedStatement stmt = orderQueueConnection_.prepareStatement( sql );
-       
-                       /* + Integer.toString( orderIdNumber_ )
-                        + ", '"
-                        + name 
-                        + "', '"
-                        + orderSummary
-                        + "', '"
-                        + orderCost
-                        + "', '"
-                        + paid.toString()
-                        + "', '"
-                        + timeOfOrderPlaced
-                        + "');";*/
-        
-    	stmt.setString( 1, Integer.toString( orderIdNumber_ ));
-    	stmt.setString( 2, name);
-    	stmt.setString( 3, orderSummary);
-    	stmt.setString( 4, orderCost);
-    	stmt.setString( 5, paid.toString());
-    	stmt.setString( 6, timeOfOrderPlaced);
-    	stmt.executeUpdate();
-        stmt.close();
     }
 
     /**
@@ -200,23 +127,60 @@ public class DataServlet extends HttpServlet
      * @param orderCost
      * @param paid
      * @param timeOfOrderPlaced
+     * @param phoneNumber
      * @throws SQLException
      */
     private static void addOrderToQueueDatabase( String name,
             String orderSummary, String orderCost, Boolean paid,
-            String timeOfOrderPlaced ) throws SQLException
+            String timeOfOrderPlaced, String phoneNumber ) throws SQLException
     {
-    	 String sql = 
-                 "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order) "
-                         + "VALUES (?,?,?,?,?,?)";
-    	PreparedStatement stmt = orderQueueConnection_.prepareStatement( sql );        
-    	stmt.setString( 1, Integer.toString( orderIdNumber_ ));
-    	stmt.setString( 2, name);
-    	stmt.setString( 3, orderSummary);
-    	stmt.setString( 4, orderCost);
-    	stmt.setString( 5, paid.toString());
-    	stmt.setString( 6, timeOfOrderPlaced);
-    	stmt.executeUpdate();
+        String sql =
+                "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order,Phone_Number) "
+                        + "VALUES (?,?,?,?,?,?,?)";
+        PreparedStatement stmt = orderQueueConnection_.prepareStatement( sql );
+        stmt.setString( 1, Integer.toString( orderIdNumber_ ) );
+        stmt.setString( 2, name );
+        stmt.setString( 3, orderSummary );
+        stmt.setString( 4, orderCost );
+        stmt.setString( 5, paid.toString() );
+        stmt.setString( 6, timeOfOrderPlaced );
+        stmt.setString( 7, phoneNumber );
+
+        stmt.executeUpdate();
+        stmt.close();
+    }
+
+    /**
+     * Once an order has been paid for and picked up this function is called to
+     * add it to the admin tracker database
+     * 
+     * @param Id
+     * @param orderSummary
+     * @param orderCost
+     * @param timeOfOrderPlaced
+     * @param timeToCreateOrder
+     * @param timeOfOrderPickup
+     * @throws SQLException
+     */
+    private static void addOrderToAdminTrackerDatabase( String Id,
+            String orderSummary,
+            String orderCost,
+            String timeOfOrderPlaced, String timeToCreateOrder,
+            String timeOfOrderPickup )
+            throws SQLException
+    {
+        String sql =
+                "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order "
+                        + "VALUES (?,?,?,?,?,?)";
+        PreparedStatement stmt = adminTrackerConnection_.prepareStatement( sql );
+
+        stmt.setString( 1, Id );
+        stmt.setString( 2, orderSummary );
+        stmt.setString( 3, orderCost );
+        stmt.setString( 4, timeOfOrderPlaced );
+        stmt.setString( 5, timeToCreateOrder );
+        stmt.setString( 6, timeOfOrderPickup );
+        stmt.executeUpdate();
         stmt.close();
     }
 
@@ -239,17 +203,19 @@ public class DataServlet extends HttpServlet
             String cost = rs.getString( "Cost" );
             Boolean paid = rs.getBoolean( "Paid" );
             String timeCompleted = rs.getString( "Time_Ready" );
+            String PhoneNumber = rs.getString( "Phone_Number" );
 
             // Display the information pulled
             System.out.println( "Got Name: " + name );
+            System.out.println( " PhoneNumber: " + PhoneNumber );
             System.out.println( "   Contents_Of_Order: " + order );
             System.out.println( "   Cost: " + cost );
             System.out.println( "   Paid: " + paid );
             System.out.println( "   Time_Of_Order: " + orderTime );
             System.out.println( "   Time_Ready: " + timeCompleted );
             System.out.println( "   id: " + id );
-
         }
+
         rs.close();
         stmt.close();
     }
@@ -364,6 +330,8 @@ public class DataServlet extends HttpServlet
      */
     private static void orderMadeHelper( int id ) throws SQLException
     {
+        // TODO: Needs to be tested
+
         updateOrderQueueStatus( orderQueueConnection_, id,
                 DATE_FORMAT.format( Calendar.getInstance().getTime() ) );
 
@@ -376,34 +344,39 @@ public class DataServlet extends HttpServlet
      * database
      * 
      * @throws SQLException
+     * @throws ParseException
      */
-    private static void orderPickedUpHelper( int id ) throws SQLException
+    private static void orderPickedUpHelper( int id ) throws SQLException,
+            ParseException
     {
-
+        // TODO: Needs to be tested
         Statement stmt = orderQueueConnection_.createStatement();
         ResultSet rs = stmt.executeQuery( "SELECT value FROM class;" );
 
-        String name = rs.getString( "Name" );
-        String order = rs.getString( "Contents_Of_Order" );
-        String orderTime = rs.getString( "Time_Of_Order" );
         String cost = rs.getString( "Cost" );
-        // TODO: Check to see if they paid before the order was picked up, if
-        // they paid when they picked up the order then log the payment
-        // information.
-        Boolean paid = rs.getBoolean( "Paid" );
+        String order = rs.getString( "Contents_Of_Order" );
+        String timeOfOrderPlacedString = rs.getString( "Time_Of_Order" );
+        String timeReadyForPickupString = rs.getString( "Time_Ready" );
 
-        if ( !paid )
-        {
-            // TODO:
-        }
+        Date timeOfOrderPlaced =
+                new SimpleDateFormat( DATE_FORMAT.toString() )
+                        .parse( timeOfOrderPlacedString );
 
-        String timeCompleted = rs.getString( "Time_Ready" );
+        Date timeReadyForPickup =
+                new SimpleDateFormat( DATE_FORMAT.toString() )
+                        .parse( timeReadyForPickupString );
+
+        long differenceInMillis =
+                timeReadyForPickup.getTime()
+                        - timeOfOrderPlaced.getTime();
 
         // Add the order to the admin tracker database and remove it from the
         // order queue
-        addOrderToAdminTrackerDatabase( name, order, cost, true, "1231" );
+        addOrderToAdminTrackerDatabase( Integer.toString( id ),
+                order, cost, timeOfOrderPlacedString,
+                DATE_FORMAT.format( differenceInMillis ),
+                DATE_FORMAT.format( Calendar.getInstance().getTime() ) );
 
         removeOrderFromDatabaseQueue( orderQueueConnection_, id );
-
     }
 }

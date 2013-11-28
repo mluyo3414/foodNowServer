@@ -45,7 +45,7 @@ public class MainServlet extends HttpServlet
     {
         // port number of the server
         Server server = new Server( 8080 );
-        
+
         // creating JSON array
         clientArray = new JSONArray();
         WebAppContext context = new WebAppContext();
@@ -56,8 +56,9 @@ public class MainServlet extends HttpServlet
 
         // Create the databases
         try
-        {        createOrderQueueDatabase();
-//        		createAdminTrackerDatabase();
+        {
+            createOrderQueueDatabase();
+            createAdminTrackerDatabase();
         }
         catch ( Exception ex )
         {
@@ -120,7 +121,8 @@ public class MainServlet extends HttpServlet
                 " Cost          TEXT        NOT NULL, " +
                 " Paid         BOOLEAN     NOT NULL, " +
                 " Time_Of_Order          TEXT       NOT NULL, " +
-                " Time_Ready    TEXT)";
+                " Time_Ready    TEXT," +
+                " Phone_Number Text )";
         stmt.executeUpdate( sql );
         stmt.close();
         System.out.println( "Created orderqueue table" );
@@ -141,10 +143,10 @@ public class MainServlet extends HttpServlet
         Connection adminTrackerConnection =
                 DriverManager.getConnection( "jdbc:sqlite:admintracker.db" );
         System.out.println( "Opened admin tracker database" );
+
         // TODO: Check to see if a database has already been created.
         createAdminTrackerTable( adminTrackerConnection );
     }
-
 
     /**
      * Creates the columns for that Admin tracker database
@@ -154,16 +156,14 @@ public class MainServlet extends HttpServlet
     private static void createAdminTrackerTable( Connection c )
             throws SQLException
     {
-        // TODO
         Statement stmt = c.createStatement();
         String sql = "CREATE TABLE IF NOT EXISTS class " +
                 "(id INT PRIMARY KEY        NOT NULL, " +
-                " Name           TEXT       NOT NULL, " +
                 " Contents_Of_Order         TEXT       NOT NULL, " +
                 " Cost          TEXT        NOT NULL, " +
-                " Paid         BOOLEAN     NOT NULL, " +
                 " Time_Of_Order          TEXT       NOT NULL, " +
-                " Time_Ready    TEXT)";
+                " Time_To_Make_Order    TEXT    NOT NULL," +
+                " Time_Picked_Up TEXT   NOT NULL)";
         stmt.executeUpdate( sql );
         stmt.close();
         System.out.println( "Created orderqueue table" );

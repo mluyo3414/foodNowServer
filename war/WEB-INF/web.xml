@@ -18,7 +18,7 @@ javaee/web-app_3_0.xsd"
 	
 	<servlet>
 		<servlet-name>Second</servlet-name>
-		<servlet-class>com.food.ApiServlet</servlet-class>
+		<servlet-class>com.food.OrderReadyServlet</servlet-class>
 	</servlet>
 	
 	<servlet-mapping>

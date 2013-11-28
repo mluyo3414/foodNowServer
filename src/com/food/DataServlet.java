@@ -12,10 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -42,11 +39,10 @@ public class DataServlet extends HttpServlet
 
     // An instance of SimpleDateFormat used for formatting
     // the string representation of date (month/day/year)
-    private final static DateFormat DATE_FORMAT = new SimpleDateFormat(
+    final static DateFormat DATE_FORMAT = new SimpleDateFormat(
             "MM/dd/yyyy HH:mm:ss" );
 
     private static Connection orderQueueConnection_;
-    private static Connection adminTrackerConnection_;
 
     // TODO: Implement, also in main
     private static Integer orderIdNumber_ = 0;
@@ -65,7 +61,7 @@ public class DataServlet extends HttpServlet
         username = username.trim();
         String order = request.getParameter( "order" );
         order = order.trim();
-        
+
         String time = request.getParameter( "location" );
         String total = request.getParameter( "total" );
 
@@ -99,10 +95,7 @@ public class DataServlet extends HttpServlet
 
             Class.forName( "org.sqlite.JDBC" );
             orderQueueConnection_ =
-                    DriverManager.getConnection( "jdbc:sqlite:orderqueue.db" );
-            adminTrackerConnection_ =
-                    DriverManager
-                            .getConnection( "jdbc:sqlite:admintracker.db" );
+                    DriverManager.getConnection( "jdbc:sqlite:orders.db" );
 
             // TODO: change the hard coded phone# to come from the client app
             addOrderToQueueDatabase( username, order, total, false, time,
@@ -151,40 +144,6 @@ public class DataServlet extends HttpServlet
     }
 
     /**
-     * Once an order has been paid for and picked up this function is called to
-     * add it to the admin tracker database
-     * 
-     * @param Id
-     * @param orderSummary
-     * @param orderCost
-     * @param timeOfOrderPlaced
-     * @param timeToCreateOrder
-     * @param timeOfOrderPickup
-     * @throws SQLException
-     */
-    private static void addOrderToAdminTrackerDatabase( String Id,
-            String orderSummary,
-            String orderCost,
-            String timeOfOrderPlaced, String timeToCreateOrder,
-            String timeOfOrderPickup )
-            throws SQLException
-    {
-        String sql =
-                "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order "
-                        + "VALUES (?,?,?,?,?,?)";
-        PreparedStatement stmt = adminTrackerConnection_.prepareStatement( sql );
-
-        stmt.setString( 1, Id );
-        stmt.setString( 2, orderSummary );
-        stmt.setString( 3, orderCost );
-        stmt.setString( 4, timeOfOrderPlaced );
-        stmt.setString( 5, timeToCreateOrder );
-        stmt.setString( 6, timeOfOrderPickup );
-        stmt.executeUpdate();
-        stmt.close();
-    }
-
-    /**
      * Pulls the students from the database
      * 
      * @param c
@@ -217,68 +176,6 @@ public class DataServlet extends HttpServlet
         }
 
         rs.close();
-        stmt.close();
-    }
-
-    /**
-     * @param c
-     * @param orderId
-     * @throws SQLException
-     */
-    public static void
-            removeOrderFromDatabaseQueue( Connection c, int orderId )
-                    throws SQLException
-    {
-        // Prepared statements secures the database and avoids sequel injection
-        PreparedStatement stmt =
-                c.prepareStatement( "DELETE FROM class WHERE id=?" );
-        stmt.setInt( 1, orderId );
-
-        // Only use executeUpdate(); when making changes to the server:
-        stmt.executeUpdate();
-
-        stmt.close();
-    }
-
-    /**
-     * Thus function is called to update the name on a customers order
-     * 
-     * @param c
-     * @param id
-     * @param newName
-     * @throws SQLException
-     */
-    public static void updateOrdersName( Connection c, int id, String newName )
-            throws SQLException
-    {
-        PreparedStatement stmt =
-                c.prepareStatement( "UPDATE class SET Name=? WHERE id=?" );
-        stmt.setString( 1, newName );
-        stmt.setInt( 2, id );
-
-        // Execute update when updating something in the database
-        stmt.executeUpdate();
-        stmt.close();
-    }
-
-    /**
-     * Thus function is called to update the time ready to pick up column
-     * 
-     * @param c
-     * @param id
-     * @param timeOrderWasReady
-     * @throws SQLException
-     */
-    public static void updateOrderQueueStatus( Connection c, int id,
-            String timeOrderWasReady ) throws SQLException
-    {
-        PreparedStatement stmt =
-                c.prepareStatement( "UPDATE class SET Time_Ready=? WHERE id=?" );
-        stmt.setString( 1, timeOrderWasReady );
-        stmt.setInt( 2, id );
-
-        // Execute update when updating something in the database
-        stmt.executeUpdate();
         stmt.close();
     }
 
@@ -319,64 +216,5 @@ public class DataServlet extends HttpServlet
         ObjectInputStream ois = new ObjectInputStream( bin );
         @SuppressWarnings( "unused" )
         Object originalObject = ois.readObject();
-    }
-
-    /**
-     * This function is called when the food for an order is ready to be picked
-     * up. It handles the event and updates the appropriate databases and Alerts
-     * the corresponding client that their order is ready.
-     * 
-     * @throws SQLException
-     */
-    private static void orderMadeHelper( int id ) throws SQLException
-    {
-        // TODO: Needs to be tested
-
-        updateOrderQueueStatus( orderQueueConnection_, id,
-                DATE_FORMAT.format( Calendar.getInstance().getTime() ) );
-
-        // TODO: Notify user that their order is ready
-    }
-
-    /**
-     * This function is called when a customer pays and picks up an order, it
-     * removes it from the orderQueue database and adds it to the transaction
-     * database
-     * 
-     * @throws SQLException
-     * @throws ParseException
-     */
-    private static void orderPickedUpHelper( int id ) throws SQLException,
-            ParseException
-    {
-        // TODO: Needs to be tested
-        Statement stmt = orderQueueConnection_.createStatement();
-        ResultSet rs = stmt.executeQuery( "SELECT value FROM class;" );
-
-        String cost = rs.getString( "Cost" );
-        String order = rs.getString( "Contents_Of_Order" );
-        String timeOfOrderPlacedString = rs.getString( "Time_Of_Order" );
-        String timeReadyForPickupString = rs.getString( "Time_Ready" );
-
-        Date timeOfOrderPlaced =
-                new SimpleDateFormat( DATE_FORMAT.toString() )
-                        .parse( timeOfOrderPlacedString );
-
-        Date timeReadyForPickup =
-                new SimpleDateFormat( DATE_FORMAT.toString() )
-                        .parse( timeReadyForPickupString );
-
-        long differenceInMillis =
-                timeReadyForPickup.getTime()
-                        - timeOfOrderPlaced.getTime();
-
-        // Add the order to the admin tracker database and remove it from the
-        // order queue
-        addOrderToAdminTrackerDatabase( Integer.toString( id ),
-                order, cost, timeOfOrderPlacedString,
-                DATE_FORMAT.format( differenceInMillis ),
-                DATE_FORMAT.format( Calendar.getInstance().getTime() ) );
-
-        removeOrderFromDatabaseQueue( orderQueueConnection_, id );
     }
 }

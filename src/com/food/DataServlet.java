@@ -46,6 +46,8 @@ public class DataServlet extends HttpServlet
 
     // TODO: Implement, also in main
     private static Integer orderIdNumber_ = 0;
+    //TODO: receive from client
+    private static String phone_="";
 
     /**
      * Adds new orders to the server from the client app.
@@ -61,19 +63,28 @@ public class DataServlet extends HttpServlet
         username = username.trim();
         String order = request.getParameter( "order" );
         order = order.trim();
+        order = order.replace( "[", "" );
+        order = order.replace( "]", "" );
 
-        String time = request.getParameter( "location" );
+        String time = request.getParameter( "time" );
         String total = request.getParameter( "total" );
+         phone_ = request.getParameter( "phone" );
 
         // passing elements
         String JSONusername = "NAME";
         String JSONorder = "ORDER";
-        String JSONLocation = "LOCATION";
+        String JSONLocation = "TIME";
         String JSONTotal = "TOTAL";
+        String JSONphone = "PHONE";
+        orderIdNumber_ =
+                1000 + (int) (Math.random() * ((9999 - 1000) + 1));
         JSONObject newClient = new JSONObject();
         try
         {
-            newClient.put( JSONusername, username );
+        	newClient.put("CONFIRMATION",orderIdNumber_);
+        	//TODO: replace by the phone
+        	newClient.put("PHONE","none");
+        	newClient.put( JSONusername, username );
             newClient.put( JSONorder, order );
             newClient.put( JSONLocation, time );
             newClient.put( JSONTotal, total );
@@ -83,9 +94,9 @@ public class DataServlet extends HttpServlet
             System.err.print( "Error in the data servlet: " + e );
         }
 
-        orderIdNumber_ =
-                1000 + (int) (Math.random() * ((9999 - 1000) + 1));
+
         response.getWriter().write( orderIdNumber_.toString() );
+ 
         MainServlet.clientArray.put( newClient );
 
         // TODO: we need to get paid boolean and order total from client
@@ -99,7 +110,7 @@ public class DataServlet extends HttpServlet
 
             // TODO: change the hard coded phone# to come from the client app
             addOrderToQueueDatabase( username, order, total, false, time,
-                    "757 636 3087" );
+                    phone_ );
 
             // Grab a hold of the order after modifying it
             printOrderQueue( orderQueueConnection_ );
@@ -190,6 +201,7 @@ public class DataServlet extends HttpServlet
      * @throws IOException
      * @throws ClassNotFoundException
      */
+    
     public static void storeObjectIntoDatabase( Connection c, Object o )
             throws SQLException, IOException, ClassNotFoundException
     {
@@ -217,4 +229,5 @@ public class DataServlet extends HttpServlet
         @SuppressWarnings( "unused" )
         Object originalObject = ois.readObject();
     }
+    
 }

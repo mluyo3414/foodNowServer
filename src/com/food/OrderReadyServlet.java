@@ -77,23 +77,33 @@ public class OrderReadyServlet extends HttpServlet
             HttpServletResponse response ) throws ServletException,
             IOException
     {
-        response.setContentType( "JSON" );
+        response.setContentType( "text/plain" );
 
         String username = request.getParameter( "username" );
         username = username.trim();
         String order = request.getParameter( "order" );
         order = order.trim();
-        String location = request.getParameter( "location" );
+        String time = request.getParameter( "time" );
+        String total = request.getParameter( "total" );
+        String phone = request.getParameter( "phone" );
+        String confirmation = request.getParameter( "confirmation" );
 
         String JSONusername = "NAME";
         String JSONorder = "ORDER";
-        String JSONLocation = "LOCATION";
+        String JSONLocation = "TIME";
+        String JSONTotal = "TOTAL";
+        String JSONPhone = "PHONE";
+        String JSONConfirmation = "CONFIRMATION";
         JSONObject newClient = new JSONObject();
         try
         {
-            newClient.put( JSONusername, username );
+        	newClient.put(JSONConfirmation,confirmation);
+        	//TODO: replace by the phone
+        	newClient.put(JSONPhone,phone);
+        	newClient.put( JSONusername, username );
             newClient.put( JSONorder, order );
-            newClient.put( JSONLocation, location );
+            newClient.put( JSONLocation, time );
+            newClient.put( JSONTotal, total );
 
             String JOBJtoString = newClient.toString();
 
@@ -123,8 +133,7 @@ public class OrderReadyServlet extends HttpServlet
         // Call the helper function to handle the completed order
         try
         {
-            // TODO: change the 1 to be an id pulled
-            orderMadeHelper( 1 );
+            orderMadeHelper( Integer.parseInt( confirmation ) );
         }
         catch ( SQLException e )
         {
@@ -148,6 +157,9 @@ public class OrderReadyServlet extends HttpServlet
                         .getTime() ) );
 
         // TODO: Notify user that their order is ready
+        
+    
+    
     }
 
     /**

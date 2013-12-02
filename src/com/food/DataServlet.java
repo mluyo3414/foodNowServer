@@ -75,15 +75,16 @@ public class DataServlet extends HttpServlet
         String JSONorder = "ORDER";
         String JSONLocation = "TIME";
         String JSONTotal = "TOTAL";
-        String JSONphone = "PHONE";
+        String JSONPhone = "PHONE";
+        String JSONConfirmation = "CONFIRMATION";
         orderIdNumber_ =
                 1000 + (int) (Math.random() * ((9999 - 1000) + 1));
         JSONObject newClient = new JSONObject();
         try
         {
-        	newClient.put("CONFIRMATION",orderIdNumber_);
+        	newClient.put(JSONConfirmation,orderIdNumber_);
         	//TODO: replace by the phone
-        	newClient.put("PHONE","none");
+        	newClient.put(JSONPhone,"none");
         	newClient.put( JSONusername, username );
             newClient.put( JSONorder, order );
             newClient.put( JSONLocation, time );

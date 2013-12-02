@@ -79,12 +79,13 @@ public class DataServlet extends HttpServlet
         String JSONConfirmation = "CONFIRMATION";
         orderIdNumber_ =
                 1000 + (int) (Math.random() * ((9999 - 1000) + 1));
+        String orderString = Integer.toString( orderIdNumber_ );
         JSONObject newClient = new JSONObject();
         try
         {
-        	newClient.put(JSONConfirmation,orderIdNumber_);
+        	newClient.put(JSONConfirmation,orderString);
         	//TODO: replace by the phone
-        	newClient.put(JSONPhone,"none");
+        	newClient.put(JSONPhone,phone_);
         	newClient.put( JSONusername, username );
             newClient.put( JSONorder, order );
             newClient.put( JSONLocation, time );

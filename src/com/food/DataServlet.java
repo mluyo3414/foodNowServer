@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 
 import javax.servlet.ServletException;
@@ -40,13 +41,13 @@ public class DataServlet extends HttpServlet
     // An instance of SimpleDateFormat used for formatting
     // the string representation of date (month/day/year)
     final static DateFormat DATE_FORMAT = new SimpleDateFormat(
-            "MM/dd/yyyy HH:mm:ss" );
+            "MM-dd-yyyy HH:mm:ss" );
 
     private static Connection orderQueueConnection_;
 
-    // TODO: Implement, also in main
+   
     private static Integer orderIdNumber_ = 0;
-    //TODO: receive from client
+    
     private static String phone_="";
 
     /**
@@ -69,6 +70,7 @@ public class DataServlet extends HttpServlet
         String time = request.getParameter( "time" );
         String total = request.getParameter( "total" );
          phone_ = request.getParameter( "phone" );
+         String paymentMethod = request.getParameter( "paymentmethod" );
 
         // passing elements
         String JSONusername = "NAME";
@@ -79,12 +81,18 @@ public class DataServlet extends HttpServlet
         String JSONConfirmation = "CONFIRMATION";
         orderIdNumber_ =
                 1000 + (int) (Math.random() * ((9999 - 1000) + 1));
+        //add to total 
+        MainServlet.totalSales = MainServlet.totalSales + Double.parseDouble( total );
+        DecimalFormat twoDForm = new DecimalFormat( "#.##" ); 
+        MainServlet.totalSales = Double.valueOf( twoDForm.format( MainServlet.totalSales ) );
+        String totalSalesString = MainServlet.totalSales.toString();
+        
+        
         String orderString = Integer.toString( orderIdNumber_ );
         JSONObject newClient = new JSONObject();
         try
         {
         	newClient.put(JSONConfirmation,orderString);
-        	//TODO: replace by the phone
         	newClient.put(JSONPhone,phone_);
         	newClient.put( JSONusername, username );
             newClient.put( JSONorder, order );
@@ -101,8 +109,6 @@ public class DataServlet extends HttpServlet
  
         MainServlet.clientArray.put( newClient );
 
-        // TODO: we need to get paid boolean and order total from client
-        // Add received order to database
         try
         {
 
@@ -110,9 +116,8 @@ public class DataServlet extends HttpServlet
             orderQueueConnection_ =
                     DriverManager.getConnection( "jdbc:sqlite:orders.db" );
 
-            // TODO: change the hard coded phone# to come from the client app
-            addOrderToQueueDatabase( username, order, total, false, time,
-                    phone_ );
+            addOrderToQueueDatabase( username, order, total, paymentMethod, time,
+                    phone_, totalSalesString );
 
             // Grab a hold of the order after modifying it
             printOrderQueue( orderQueueConnection_ );
@@ -137,12 +142,12 @@ public class DataServlet extends HttpServlet
      * @throws SQLException
      */
     private static void addOrderToQueueDatabase( String name,
-            String orderSummary, String orderCost, Boolean paid,
-            String timeOfOrderPlaced, String phoneNumber ) throws SQLException
+            String orderSummary, String orderCost, String paid,
+            String timeOfOrderPlaced, String phoneNumber, String totalSales ) throws SQLException
     {
         String sql =
-                "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order,Phone_Number) "
-                        + "VALUES (?,?,?,?,?,?,?)";
+                "INSERT INTO class (id,Name,Contents_Of_Order,Cost,Paid,Time_Of_Order,Total_Sales,Phone_Number) "
+                        + "VALUES (?,?,?,?,?,?,?,?)";
         PreparedStatement stmt = orderQueueConnection_.prepareStatement( sql );
         stmt.setString( 1, Integer.toString( orderIdNumber_ ) );
         stmt.setString( 2, name );
@@ -150,7 +155,9 @@ public class DataServlet extends HttpServlet
         stmt.setString( 4, orderCost );
         stmt.setString( 5, paid.toString() );
         stmt.setString( 6, timeOfOrderPlaced );
-        stmt.setString( 7, phoneNumber );
+        stmt.setString( 7, totalSales );
+        stmt.setString( 8, phoneNumber );
+        
 
         stmt.executeUpdate();
         stmt.close();
@@ -192,44 +199,5 @@ public class DataServlet extends HttpServlet
         stmt.close();
     }
 
-    /**
-     * Stores an object into the specified database. Note: The passed Object "O"
-     * must implement java.io.Serializable for this code to work…
-     * 
-     * @param c
-     * @param o
-     *            Must implement java.io.Serializable
-     * @throws SQLException
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    
-    public static void storeObjectIntoDatabase( Connection c, Object o )
-            throws SQLException, IOException, ClassNotFoundException
-    {
-        String sql =
-                "CREATE TABLE IF NOT EXISTS objects (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, data BLOB NOT NULL);";
-        Statement stmt = c.createStatement();
-        stmt.executeUpdate( sql );
-        // Convert object to byte[]
-        ByteArrayOutputStream bstream = new ByteArrayOutputStream();
-        (new ObjectOutputStream( bstream )).writeObject( o );
-        byte[] storable = bstream.toByteArray();
-        // Store in database
-        PreparedStatement insert =
-                c.prepareStatement( "INSERT INTO objects (data) VALUES (?)" );
-        insert.setBytes( 1, storable );
-        insert.executeUpdate();
-        // Extract from database
-        Statement getData = c.createStatement();
-        ResultSet rs =
-                getData.executeQuery( "SELECT data FROM objects WHERE id=1;" );
-        byte[] retrieved = rs.getBytes( "data" );
-        // Convert back to object (e.g "inflate")
-        ByteArrayInputStream bin = new ByteArrayInputStream( retrieved );
-        ObjectInputStream ois = new ObjectInputStream( bin );
-        @SuppressWarnings( "unused" )
-        Object originalObject = ois.readObject();
-    }
-    
+
 }

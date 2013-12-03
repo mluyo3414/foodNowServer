@@ -35,8 +35,8 @@ public class MainServlet extends HttpServlet
 
     // A singular static reference to the JSONarray containing the data
     public static JSONArray clientArray;
+    public static Double totalSales=0.0;
 
-    // TODO: Implement, also in data servlet
     private static int orderIdNumber_ = 0;
 
     /**
@@ -99,9 +99,6 @@ public class MainServlet extends HttpServlet
                 DriverManager.getConnection( "jdbc:sqlite:orders.db" );
         System.out.println( "Created orderqueue database" );
 
-        // TODO: the following if is a hack, figure out how to
-        // http://stackoverflow.com/questions/3386667/query-if-android-database-exists
-        // Check to see if the database is already made
 
         // Create the database table
         createOrderQueueTable( orderQueueConnection );
@@ -122,10 +119,11 @@ public class MainServlet extends HttpServlet
                 " Name           TEXT       NOT NULL, " +
                 " Contents_Of_Order         TEXT       NOT NULL, " +
                 " Cost          TEXT        NOT NULL, " +
-                " Paid         BOOLEAN     NOT NULL, " +
+                " Paid         TEXT     NOT NULL, " +
                 " Time_Of_Order          TEXT       NOT NULL, " +
                 " Time_Ready    TEXT," +
-                " Phone_Number Text )";
+                "Total_Sales	TEXT," +
+                " Phone_Number TEXT )";
         stmt.executeUpdate( sql );
         stmt.close();
         System.out.println( "Created orderqueue table" );

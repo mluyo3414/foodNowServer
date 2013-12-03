@@ -98,7 +98,7 @@ public class OrderReadyServlet extends HttpServlet
         try
         {
         	newClient.put(JSONConfirmation,confirmation);
-        	//TODO: replace by the phone
+
         	newClient.put(JSONPhone,phone);
         	newClient.put( JSONusername, username );
             newClient.put( JSONorder, order );
@@ -141,6 +141,7 @@ public class OrderReadyServlet extends HttpServlet
                     .print( "Error handling the finished order with the database: "
                             + e );
         }
+        
     }
 
     /**
@@ -154,56 +155,11 @@ public class OrderReadyServlet extends HttpServlet
     {
         updateOrderQueueStatus( orderQueueConnection_, id,
                 DataServlet.DATE_FORMAT.format( Calendar.getInstance()
-                        .getTime() ) );
-
-        // TODO: Notify user that their order is ready
-        
+                        .getTime() ) );        
     
     
     }
 
-    /**
-     * TODO for debugging purposes
-     * 
-     * @param c
-     * @param orderId
-     * @throws SQLException
-     */
-    public static void
-            removeOrderFromDatabaseQueue( Connection c, int orderId )
-                    throws SQLException
-    {
-        // Prepared statements secures the database and avoids sequel injection
-        PreparedStatement stmt =
-                c.prepareStatement( "DELETE FROM class WHERE id=?" );
-        stmt.setInt( 1, orderId );
-
-        // Only use executeUpdate(); when making changes to the server:
-        stmt.executeUpdate();
-
-        stmt.close();
-    }
-
-    /**
-     * Thus function is called to update the name on a customers order
-     * 
-     * @param c
-     * @param id
-     * @param newName
-     * @throws SQLException
-     */
-    public static void updateOrdersName( Connection c, int id, String newName )
-            throws SQLException
-    {
-        PreparedStatement stmt =
-                c.prepareStatement( "UPDATE class SET Name=? WHERE id=?" );
-        stmt.setString( 1, newName );
-        stmt.setInt( 2, id );
-
-        // Execute update when updating something in the database
-        stmt.executeUpdate();
-        stmt.close();
-    }
 
     /**
      * Thus function is called to update the time the order is ready to pick up
@@ -214,6 +170,7 @@ public class OrderReadyServlet extends HttpServlet
      * @param timeOrderWasReady
      * @throws SQLException
      */
+    
     public static void updateOrderQueueStatus( Connection c, int id,
             String timeOrderWasReady ) throws SQLException
     {
@@ -226,15 +183,6 @@ public class OrderReadyServlet extends HttpServlet
         stmt.executeUpdate();
         stmt.close();
     }
+    
 
-    /**
-     * TODO: this function is called when an admin wants the database to be
-     * reset
-     * 
-     * @param c
-     */
-    private static void emptyDataBase( Connection c )
-    {
-        // TODO:
-    }
 }

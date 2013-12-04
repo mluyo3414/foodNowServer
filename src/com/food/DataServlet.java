@@ -1,10 +1,6 @@
 package com.food;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,7 +10,6 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -43,9 +38,9 @@ public class DataServlet extends HttpServlet
     final static DateFormat DATE_FORMAT = new SimpleDateFormat(
             "MM-dd-yyyy HH:mm:ss" );
 
+    // database variables
     private static Connection orderQueueConnection_;
 
-   
     private static Integer orderIdNumber_ = 0;
     
     private static String phone_="";
@@ -81,7 +76,7 @@ public class DataServlet extends HttpServlet
         String JSONConfirmation = "CONFIRMATION";
         orderIdNumber_ =
                 1000 + (int) (Math.random() * ((9999 - 1000) + 1));
-        //add to total 
+        //total sales 
         MainServlet.totalSales = MainServlet.totalSales + Double.parseDouble( total );
         DecimalFormat twoDForm = new DecimalFormat( "#.##" ); 
         MainServlet.totalSales = Double.valueOf( twoDForm.format( MainServlet.totalSales ) );
@@ -103,10 +98,9 @@ public class DataServlet extends HttpServlet
         {
             System.err.print( "Error in the data servlet: " + e );
         }
-
-
+        	// return order id to customer
         response.getWriter().write( orderIdNumber_.toString() );
- 
+        	//add it to JSON array
         MainServlet.clientArray.put( newClient );
 
         try
@@ -131,16 +125,17 @@ public class DataServlet extends HttpServlet
     }
 
     /**
-     * This function adds an order to the orderQueue Database
-     * 
+     *  Adds information to the database
      * @param name
      * @param orderSummary
      * @param orderCost
      * @param paid
      * @param timeOfOrderPlaced
      * @param phoneNumber
+     * @param totalSales
      * @throws SQLException
      */
+
     private static void addOrderToQueueDatabase( String name,
             String orderSummary, String orderCost, String paid,
             String timeOfOrderPlaced, String phoneNumber, String totalSales ) throws SQLException
@@ -164,7 +159,7 @@ public class DataServlet extends HttpServlet
     }
 
     /**
-     * Pulls the students from the database
+     * Pulls the students from the database for debugging
      * 
      * @param c
      * @throws SQLException
@@ -180,19 +175,19 @@ public class DataServlet extends HttpServlet
             String order = rs.getString( "Contents_Of_Order" );
             String orderTime = rs.getString( "Time_Of_Order" );
             String cost = rs.getString( "Cost" );
-            Boolean paid = rs.getBoolean( "Paid" );
+            String paid = rs.getString( "Paid" );
             String timeCompleted = rs.getString( "Time_Ready" );
             String PhoneNumber = rs.getString( "Phone_Number" );
-
-            // Display the information pulled
-            System.out.println( "Got Name: " + name );
-            System.out.println( " PhoneNumber: " + PhoneNumber );
-            System.out.println( "   Contents_Of_Order: " + order );
-            System.out.println( "   Cost: " + cost );
-            System.out.println( "   Paid: " + paid );
-            System.out.println( "   Time_Of_Order: " + orderTime );
-            System.out.println( "   Time_Ready: " + timeCompleted );
-            System.out.println( "   id: " + id );
+            String totalSales = rs.getString( "Total_Sales" );
+            System.out.println( "Name: " + name );
+            System.out.println( "PhoneNumber: " + PhoneNumber );
+            System.out.println( "Contents_Of_Order: " + order );
+            System.out.println( "Cost: " + cost );
+            System.out.println( "Paid: " + paid );
+            System.out.println( "Time_Of_Order: " + orderTime );
+            System.out.println( "Time_Ready: " + timeCompleted );
+            System.out.println( "id: " + id );
+            System.out.println("Total Sales: " + totalSales);
         }
 
         rs.close();

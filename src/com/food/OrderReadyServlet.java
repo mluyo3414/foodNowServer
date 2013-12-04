@@ -54,7 +54,7 @@ public class OrderReadyServlet extends HttpServlet
         catch ( Exception e )
         {
             System.err
-                    .print( "Error connectino to the order database: "
+                    .print( "Error connecting to the order database: "
                             + e );
         }
     }
@@ -77,8 +77,8 @@ public class OrderReadyServlet extends HttpServlet
             HttpServletResponse response ) throws ServletException,
             IOException
     {
-        response.setContentType( "text/plain" );
-
+        //pulling parameters
+    	response.setContentType( "text/plain" );
         String username = request.getParameter( "username" );
         username = username.trim();
         String order = request.getParameter( "order" );
@@ -94,6 +94,7 @@ public class OrderReadyServlet extends HttpServlet
         String JSONTotal = "TOTAL";
         String JSONPhone = "PHONE";
         String JSONConfirmation = "CONFIRMATION";
+        //creating new JSONObject to delete from array
         JSONObject newClient = new JSONObject();
         try
         {
@@ -111,15 +112,12 @@ public class OrderReadyServlet extends HttpServlet
 
             String newClientArray = ClientArrayRaw.replace( JOBJtoString, "" );
             // if object is first
-
             newClientArray = newClientArray.replace( "[,", "[" );
             // if object is last
             newClientArray = newClientArray.replace( ",]", "]" );
             // if object is in the middle
             newClientArray = newClientArray.replace( ",,", "," );
-
             JSONArray newArray = null;
-
             newArray = new JSONArray( newClientArray );
 
             // replacing old array
@@ -163,7 +161,7 @@ public class OrderReadyServlet extends HttpServlet
 
     /**
      * Thus function is called to update the time the order is ready to pick up
-     * in the database
+     * in the database. It is triggered by the admin app.
      * 
      * @param c
      * @param id

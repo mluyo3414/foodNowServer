@@ -4,7 +4,7 @@ foodNowServer
 James Dagres, 
 Miguel Suarez,  
 Matt Luckam, and
-Carl Barbee
+Carl Barbee.
 
 DESCRIPTION:
 =============
@@ -23,7 +23,6 @@ ADMIN APPLICATION:
 =============
 
 For more information see the repo of the Admin App:
-https://github.com/theguyontheleft/adminApp
-
+https://github.com/mluyo3414/adminApp
 
 
